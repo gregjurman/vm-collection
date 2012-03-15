@@ -139,7 +139,7 @@ int main(int argc, char * argv[]) {
         exit(127);
     }
 
-    // TODO: Dispatch
+    // Lets do this thing!
     dispatch(fd);
 
     // Close our bytecode files
