@@ -22,58 +22,82 @@ char registers[4] = {0};
 
 //Define our command struct
 typedef struct {
-    unsigned char padding : 2;
-    unsigned char opcode : 2;
-    unsigned char src : 2;
     unsigned char dest : 2;
+    unsigned char src : 2;
+    unsigned char opcode : 2;
+    unsigned char padding : 2;
 } cmd_struct;
+
+void inspect_cmd_struct(cmd_struct c) {
+    printf("\t%X opcode: %i, src: %i, dest: %i", 
+        c, c.opcode, c.src, c.dest);
+}
+
+// Data structure
+typedef struct {
+    unsigned char input : 4;
+    unsigned char output : 4;
+} data_struct;
+
+void inspect_data_struct(data_struct d) {
+    printf("\t%X input: %i, output: %i",
+        d, d.input, d.output);
+}
+
 
 // Define our complete operation struct
 typedef struct {
     cmd_struct cmd;
-    unsigned char input : 4;
-    unsigned char output : 4;
+    data_struct data;
 } operation_struct;
+
 
 
 // Our virtual machine
 int dispatch(FILE * fp) {
     operation_struct op;
-
+    size_t op_num = 0;
 #define TARGET(op) \
     TARGET_##op: \
     case op: 
 
     // Define targets (these let us haul ass)
     static void * op_targets[4] = {
-        &&TARGET_OP_DISPLAY,
-        &&TARGET_OP_WRITE,
+        &&TARGET_OP_COPY,
         &&TARGET_OP_READ,
-        &&TARGET_OP_COPY
+        &&TARGET_OP_WRITE,
+        &&TARGET_OP_DISPLAY,
     };
 
     // Our main VM loop
-    while(fread(&op, sizeof(operation_struct), 1, fp) == 1) {
+    while(fp != NULL) {
         dispatch:
+        op_num++;
+
+        printf("\nDispatching operation number: %li\n", op_num);
+
         if(fread(&op, sizeof(operation_struct), 1, fp) != 1) break;
+
+        inspect_cmd_struct(op.cmd);
+        inspect_data_struct(op.data);
 
         goto *op_targets[op.cmd.opcode];
 
         switch(op.cmd.opcode) { // We should never have to evaluate this
             TARGET(OP_DISPLAY)
-                printf("Display ");
+                printf("\tDisplay");
                 goto dispatch;
 
             TARGET(OP_WRITE)
-                printf("Write ");
+                printf("\tWrite");
                 goto dispatch;
     
             TARGET(OP_READ)
-                printf("Read ");
+                printf("\tRead");
                 goto dispatch;
 
             TARGET(OP_COPY)
-                printf("Copy ");
+                printf("\tCopy");
                 goto dispatch;
         }
     }
@@ -85,7 +109,7 @@ int dispatch(FILE * fp) {
 // Main entry point
 int main(int argc, char * argv[]) {
     // do an argument check
-    if (argc != 1) {
+    if (argc != 2) {
         printf("Usage: lab1vm bitfile\n");
         exit(1);
     }
@@ -98,6 +122,7 @@ int main(int argc, char * argv[]) {
     }
 
     // TODO: Dispatch
+    dispatch(fd);
 
     // Close our bytecode files
     fclose(fd);
