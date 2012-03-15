@@ -11,14 +11,22 @@
 #include <stdlib.h>
 
 // Define our opcodes
-#define OP_DISPLAY  3 //48
-#define OP_WRITE    2 //32
-#define OP_READ     1 //16
-#define OP_COPY     0 //0
+#define OP_DISPLAY  3
+#define OP_WRITE    2
+#define OP_READ     1
+#define OP_COPY     0
 
 
 // We have 4 registers
 char registers[4] = {0};
+
+void inspect_registers() {
+    // Being lazy and not bothering looping
+    printf("\tCurrent registers: %i %i %i %i\n", 
+        registers[0], registers[1],
+        registers[2], registers[3]);
+}
+
 
 //Define our command struct
 typedef struct {
@@ -29,19 +37,20 @@ typedef struct {
 } cmd_struct;
 
 void inspect_cmd_struct(cmd_struct c) {
-    printf("\t%X opcode: %i, src: %i, dest: %i", 
-        c, c.opcode, c.src, c.dest);
+    printf("\topcode: %i, src: %i, dest: %i\n", 
+        c.opcode, c.src, c.dest);
 }
+
 
 // Data structure
 typedef struct {
     unsigned char input : 4;
-    unsigned char output : 4;
+    unsigned char output : 4; //We never use these
 } data_struct;
 
 void inspect_data_struct(data_struct d) {
-    printf("\t%X input: %i, output: %i",
-        d, d.input, d.output);
+    printf("\tinput: %i, output: %i\n",
+        d.input, d.output);
 }
 
 
@@ -55,11 +64,12 @@ typedef struct {
 
 // Our virtual machine
 int dispatch(FILE * fp) {
-    operation_struct op;
-    size_t op_num = 0;
-#define TARGET(op) \
-    TARGET_##op: \
-    case op: 
+    operation_struct op; // Our current operation
+    size_t op_num = 0; // Keep count how many instructions we have done
+
+    #define TARGET(op) \
+        TARGET_##op: \
+        case op: 
 
     // Define targets (these let us haul ass)
     static void * op_targets[4] = {
@@ -74,33 +84,41 @@ int dispatch(FILE * fp) {
         dispatch:
         op_num++;
 
-        printf("\nDispatching operation number: %li\n", op_num);
+        printf("\n\nDispatching operation number: %li\n", op_num);
+        inspect_registers();
 
+        // Read in a new 2-byte command, if not break
         if(fread(&op, sizeof(operation_struct), 1, fp) != 1) break;
 
+        // Little bit of inspection
         inspect_cmd_struct(op.cmd);
         inspect_data_struct(op.data);
 
+        // This is where the magic happens
         goto *op_targets[op.cmd.opcode];
 
-        switch(op.cmd.opcode) { // We should never have to evaluate this
-            TARGET(OP_DISPLAY)
-                printf("\tDisplay");
+        // We will never evaluate this time consuming switch
+        // because of computed-goto awesome
+        switch(op.cmd.opcode) {
+            TARGET(OP_DISPLAY) // Pass-through
+                printf("%i ", op.data.input);
                 goto dispatch;
 
-            TARGET(OP_WRITE)
-                printf("\tWrite");
+            TARGET(OP_WRITE) // Write to register
+                registers[op.cmd.dest] = op.data.input;
                 goto dispatch;
     
-            TARGET(OP_READ)
-                printf("\tRead");
+            TARGET(OP_READ) // Read(print) from register
+                printf("%i ", registers[op.cmd.src]);
                 goto dispatch;
 
-            TARGET(OP_COPY)
-                printf("\tCopy");
+            TARGET(OP_COPY) // Copy from source to destination register
+                registers[op.cmd.dest] = registers[op.cmd.src];
                 goto dispatch;
         }
     }
+
+    // We have exited the loop
     printf("Broke!\n");
 
     return 0;
