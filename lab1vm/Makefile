@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I.
+CFLAGS=-I../common/include -I.
 DEPS =
 ODIR = .objs
 
@@ -8,13 +8,13 @@ $(ODIR)/%.o: %.c $(DEPS)
 	mkdir $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-vm-a: $(ODIR)/main.o
+lab1vm: $(ODIR)/main.o
 	gcc -o $@ $^ $(CFLAGS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core vm-a
+	rm -f $(ODIR)/*.o *~ core lab1vm
 
 .PHONY: mrproper
 
