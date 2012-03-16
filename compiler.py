@@ -14,10 +14,10 @@ import re
 
 # Define our opcode mapping
 opcodes = { #op, src, dest
-    'MOV' : (0, 'reg', 'reg'), # Copy from one reg to another
-    'ST' : (1, 'reg', None),   # Store (to display/output)
-    'LI' : (2, 'reg', 'num'),  # Load Immediate
-    'DIS' : (3, 'num', None),  # Store to output
+    'MOV' : (0, [('reg', 'reg')]), # Copy from one reg to another
+    'ST' : (1, [('reg', None)]),   # Store (to display/output)
+    'LI' : (2, [('reg', 'num')]),  # Load Immediate
+    'DIS' : (3, [('num', None)]),  # Store to output
     }
 
 class CompilerError(Exception):
@@ -88,6 +88,9 @@ def parse_operation(asm_line):
         g['arg1'] = parse_argument(g['arg1'])
         if g['arg2']:
             g['arg2'] = parse_argument(g['arg2'])
+        else:
+            del g['arg2']
+
 
         return g
 
