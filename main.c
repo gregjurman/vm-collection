@@ -105,12 +105,22 @@ int dispatch(FILE * fp) {
         TARGET_##op: \
         case op: 
 
-    /* After pre-processing adds the appropriate labels to the code
+    /* After pre-processing adds the appropriate labels to the code,
      * we define our target list in a static array for our opcodes.
      *
      * This way we can take the numerical value of our opcode 
      * (for example, OP_DISPLAY is 3) and reference it to a list rather
-     * than evaluating it against a switch/case.
+     * than evaluating it against a switch/case. Rather than a long chain
+     * of host-machine compare(CMP on the MSP430), this allows us to jump 
+     * (JMP) immeditely to the instructions that need to be run rather than 
+     * spending about (opcode_value + 1) * 2 instructions to work through the
+     * switch-case.
+     *
+     * On larger virtual machines, this means opcodes that are way at the 
+     * bottom of the switch/case will begin execution at the same time.
+     * It no longer matters where in the switch-case the opcode begins at,
+     * they only need a single JMP to get to rather than X number of CMP+JNE
+     * statements if the switch-case needed to be evaluated.
     **/
 
     static void * op_targets[4] = {
