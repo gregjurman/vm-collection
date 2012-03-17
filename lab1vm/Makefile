@@ -5,7 +5,10 @@ ODIR = .objs
 
 
 $(ODIR)/%.o: %.c $(DEPS)
-	mkdir $(ODIR)
+	if test -d $(ODIR); \
+	then rm -rf $(ODIR)/*; \
+	else mkdir $(ODIR); \
+	fi
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 lab1vm: $(ODIR)/main.o
