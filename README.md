@@ -42,6 +42,16 @@ basics of a microcomputer to students. This is a little VM for it.
 * accumulator based
 * load/store based
 
+### Assembling the example
+
+    xxd -r examples/first.hex > examples/first.bit
+    xxd -r examples/first-heap.hex > examples/first-heap.bit
+
+
+### Running the example
+
+    ./mu0 examples/first.bit examples/first-heap.bit
+
 
 ## Cool resources
 [Labels as values](http://gcc.gnu.org/onlinedocs/gcc/Labels-as-Values.html)
