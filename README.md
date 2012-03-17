@@ -30,8 +30,8 @@ using GCC.
 
 ## MU0 VM - Virtual Machine for MU0
 
-MU0 is a simple academic VM that is sometimes used to present the basics
-of a microcomputer.
+MU0 is a simple academic microcomputer that is sometimes used to present the 
+basics of a microcomputer to students. This is a little VM for it.
 
 [Link to lecture notes](http://cas.ee.ic.ac.uk/people/gac1/Architecture/Lecture2.pdf)
 
