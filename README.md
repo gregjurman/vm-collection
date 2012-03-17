@@ -1,5 +1,8 @@
 # Greg's Virtual Machine Collection
 
+A collection of stupid little virtual machines for the purpose of learning
+how to do interpretation and optimiztion.
+
 ## Lab 1 VM - Virtual Machine Example for 0618.303
 
 This is an example virtual machine for Lab 1 of 0618.303 (Microcomputers).
@@ -23,6 +26,22 @@ using GCC.
     * LI #3, R1 - Load the number 3 into R1
 * __DIS #val__ - Print the immediate value
     * DIS #5 - Print the number 5 to stdio
+
+
+## MU0 VM - Virtual Machine for MU0
+
+MU0 is a simple academic VM that is sometimes used to present the basics
+of a microcomputer.
+
+[Link to lecture notes](http://cas.ee.ic.ac.uk/people/gac1/Architecture/Lecture2.pdf)
+
+### Specifications
+
+* Von Numan based architecture
+* no general purpose registers
+* accumulator based
+* load/store based
+
 
 ## Cool resources
 [Labels as values](http://gcc.gnu.org/onlinedocs/gcc/Labels-as-Values.html)
