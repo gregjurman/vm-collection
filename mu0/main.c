@@ -35,7 +35,7 @@ typedef struct {
 } operation_struct;
 
 // Our MU0 VM!
-int dispatch(FILE * fp) {
+int dispatch(FILE * fp, FILE * hp) {
     int error_code = 0;
     uint16_t * heap;
     void * code;
@@ -46,6 +46,11 @@ int dispatch(FILE * fp) {
         printf("VM Error: Cannot allocate heap!");
         fp = NULL;
         error_code = -1;
+    }
+
+    // If we have a heap-file read it in
+    if (hp != NULL) {
+        fread(heap, sizeof(uint16_t), 4096, hp);
     }
 
     // Size up our code-space and read in our code
@@ -103,8 +108,8 @@ int dispatch(FILE * fp) {
             operation_struct* op = (operation_struct *)(&registers[REG_IR]);
 
             // Little inspection
-            printf("PC: %i op: %#X, s: %#X ", 
-                registers[REG_PC], 
+            printf("PC: %i, ACC: %i, op: %#X, s: %#X ", 
+                registers[REG_PC], registers[REG_ACC],
                 (*op).opcode, (*op).s);
 
             // Point PC to the next instruction
@@ -176,26 +181,41 @@ int dispatch(FILE * fp) {
 }
 
 // Main entry point
-int main(int argc, char * argv[]) {
+void main(int argc, char * argv[]) {
     // do an argument check
-    if (argc != 2) {
-        printf("Usage: lab1vm bitfile\n");
+    if (argc < 2 || argc > 3) {
+        printf("Usage: mu0 bitfile [heapfile]\n");
         exit(1);
     }
     
     // Lets open our bytecode file
     FILE * fd = fopen(argv[1], "rb");
     if (fd == NULL) {
-        printf("Cannot access file!\n");
+        printf("Cannot access bytecode file!\n");
         exit(127);
     }
 
+    FILE * hd = NULL;
+    if (argc == 3) {
+        // Lets open our heap file
+        hd = fopen(argv[2], "rb");
+        if (hd == NULL) {
+            printf("Cannot access heapfile!\n");
+            exit(127);
+        }
+    }
+
     // Lets do this thing!
-    int err_code = dispatch(fd);
+    int err_code = dispatch(fd, hd);
+
+    // Close our bytecode files
+    if (fd != NULL) fclose(fd);
+    if (hd != NULL) fclose(hd);
+
+    // Print an error code if needed
     if (err_code != 0) {
         printf("VM failed with error code: %i\n", err_code);
     }
 
-    // Close our bytecode files
-    fclose(fd);
+    exit(0);
 }
