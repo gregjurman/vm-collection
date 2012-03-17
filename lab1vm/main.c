@@ -153,7 +153,7 @@ int main(int argc, char * argv[]) {
     }
     
     // Lets open our bytecode file
-    FILE * fd = fopen(argv[1], "r");
+    FILE * fd = fopen(argv[1], "rb");
     if (fd == NULL) {
         printf("Cannot access file!\n");
         exit(127);
