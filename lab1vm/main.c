@@ -102,13 +102,17 @@ int dispatch(FILE * fp) {
 // Main entry point
 int main(int argc, char * argv[]) {
     // do an argument check
-    if (argc != 2) {
-        printf("Usage: lab1vm bitfile\n");
-        exit(1);
-    }
-    
+    struct arguments arguments;
+     
+    /* Default values. */
+    arguments.verbose = 0;
+    arguments.bit_file = NULL;
+     
+    /* Parse our arguments; every option seen by parse_opt will
+    * be reflect`ed in arguments. */
+    argp_parse (&argp, argc, argv, 0, 0, &arguments); 
     // Lets open our bytecode file
-    FILE * fd = fopen(argv[1], "rb");
+    FILE * fd = fopen(arguments.bit_file, "rb");
     if (fd == NULL) {
         printf("Cannot access file!\n");
         exit(127);
