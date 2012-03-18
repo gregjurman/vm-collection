@@ -1,18 +1,20 @@
 CC=gcc
-CFLAGS=-I../common/include -I.
+CFLAGS=-I../common/include -I./include
 DEPS =
 ODIR = .objs
 
+_OBJ = memory.o main.o
+OBJS = $(patsubst %,$(ODIR)/%,$(_OBJ))
+
+mu0: $(OBJS)
+	gcc -o $@ $^ $(CFLAGS)
+
 
 $(ODIR)/%.o: %.c $(DEPS)
-	if test -d $(ODIR); \
-	then rm -rf $(ODIR)/*; \
-	else mkdir $(ODIR); \
+	if test ! -d $(ODIR); \
+	then mkdir $(ODIR); \
 	fi
 	$(CC) -c -o $@ $< $(CFLAGS)
-
-mu0: $(ODIR)/main.o
-	gcc -o $@ $^ $(CFLAGS)
 
 .PHONY: clean
 
