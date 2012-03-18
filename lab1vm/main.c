@@ -9,56 +9,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <argp.h>
 
-// Define our opcodes
-#define OP_DISPLAY  3
-#define OP_WRITE    2
-#define OP_READ     1
-#define OP_COPY     0
-
-
-
-void inspect_registers(char registers[]) {
-    // Being lazy and not bothering looping
-    printf("\tCurrent registers: %i %i %i %i\n", 
-        registers[0], registers[1],
-        registers[2], registers[3]);
-}
-
-
-//Define our command struct
-typedef struct {
-    unsigned char dest : 2;
-    unsigned char src : 2;
-    unsigned char opcode : 2;
-    unsigned char padding : 2;
-} cmd_struct;
-
-void inspect_cmd_struct(cmd_struct c) {
-    printf("\topcode: %i, src: %i, dest: %i\n", 
-        c.opcode, c.src, c.dest);
-}
-
-
-// Data structure
-typedef struct {
-    unsigned char input : 4;
-    unsigned char output : 4; //We never use these
-} data_struct;
-
-void inspect_data_struct(data_struct d) {
-    printf("\tinput: %i, output: %i\n",
-        d.input, d.output);
-}
-
-
-// Define our complete operation struct
-typedef struct {
-    cmd_struct cmd;
-    data_struct data;
-} operation_struct;
-
-
+#include "opcodes.h"
+#include "inspect.h"
+#include "structs.h"
 
 // Our virtual machine
 int dispatch(FILE * fp) {
