@@ -1,4 +1,3 @@
-
 #include <argp.h>
 
 #ifndef ARGS_H_
@@ -6,15 +5,12 @@
 static error_t parse_opt (int key, char *arg, struct argp_state *state);
 
 /* Used by main to communicate with parse_opt. */
-struct arguments
-{
+struct arguments {
     int verbose;
     char *bit_file;
 };
 
-
-#ifdef ARGP_HEADER
-
+#ifdef NO_ARGHEADER
 const char doc[] =
     "an example virtual machine for Lab 1 of RIT 0618.303.";
 
@@ -33,10 +29,6 @@ static struct argp_option options[] = {
 };
 
 static struct argp argp = { options, parse_opt, args_doc, doc };
-#endif
-
-#ifndef ARGP_HEADER
-static struct argp argp;
 #endif
 
 #endif
