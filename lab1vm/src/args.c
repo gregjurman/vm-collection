@@ -1,3 +1,9 @@
+/*
+ * Argument parser
+ *
+ * Greg Jurman <gdj2214@rit.edu>
+ */
+
 #include "args.h"
 
 /* Parse a single option. */

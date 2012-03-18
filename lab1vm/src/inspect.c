@@ -1,3 +1,9 @@
+/*
+ * Struct and reigster inspectors
+ *
+ * Greg Jurman <gdj2214@rit.edu>
+ */
+
 #include "inspect.h"
 
 void inspect_cmd_struct(cmd_struct c) {

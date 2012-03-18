@@ -1,6 +1,14 @@
+/*
+ * Argument parser
+ *
+ * Greg Jurman <gdj2214@rit.edu>
+ */
+
 #include <argp.h>
 
 #ifndef ARGS_H_
+#define ARGS_H_
+
 error_t parse_opt (int key, char *arg, struct argp_state *state);
 
 /* Used by main to communicate with parse_opt. */
@@ -9,11 +17,7 @@ struct arguments {
     char *bit_file;
 };
 
-#define ARGS_H_
-#endif
-
 #ifndef NO_ARGPHEADER
-
 const char doc[] =
     "an example virtual machine for Lab 1 of RIT 0618.303.";
 
@@ -32,5 +36,6 @@ static struct argp_option options[] = {
 };
 
 static struct argp argp = { options, parse_opt, args_doc, doc };
+#endif
 #endif
 
