@@ -1,18 +1,19 @@
 #include <argp.h>
 
 #ifndef ARGS_H_
-#define ARGS_H_
-
-static error_t parse_opt (int key, char *arg, struct argp_state *state);
+error_t parse_opt (int key, char *arg, struct argp_state *state);
 
 /* Used by main to communicate with parse_opt. */
 struct arguments {
     int verbose;
     char *bit_file;
 };
+
+#define ARGS_H_
 #endif
 
-#ifdef NO_ARGPHEADER
+#ifndef NO_ARGPHEADER
+
 const char doc[] =
     "an example virtual machine for Lab 1 of RIT 0618.303.";
 
