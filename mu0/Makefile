@@ -10,10 +10,16 @@ mu0: $(OBJS)
 	gcc -o $@ $^ $(CFLAGS)
 
 
-$(ODIR)/%.o: %.c $(DEPS)
+$(ODIR)/%.o: src/%.c $(DEPS)
 	if test ! -d $(ODIR); \
 	then mkdir $(ODIR); \
 	fi
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+_TOBJ = memory.o
+TOBJS = $(patsubst %,$(ODIR)/%,$(_TOBJ))
+
+$(ODIR)/main.o: main.c $(TOBJS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 .PHONY: clean
