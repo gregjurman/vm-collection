@@ -9,11 +9,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <argp.h>
 
-#include "opcodes.h"
-#include "inspect.h"
-#include "structs.h"
+#include <opcodes.h>
+#include <inspect.h>
+#include <structs.h>
+#include <args.h>
+
 
 // Our virtual machine
 int dispatch(FILE * fp) {
