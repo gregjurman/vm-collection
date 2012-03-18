@@ -1,4 +1,6 @@
-.o
-.obj
+*/*.bit
+*/*.o
+*/.obj
 build
 lab1vm/lab1vm
+mu0/mu0
