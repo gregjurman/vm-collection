@@ -9,102 +9,45 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
-// Define our opcodes
-#define OP_LDA 0 // ACC := mem[S]
-#define OP_STO 1 // mem[S] := ACC
-#define OP_ADD 2 // ACC := ACC + mem[S]
-#define OP_SUB 3 // ACC := ACC - mem[S]
-#define OP_JMP 4 // PC := S
-#define OP_JGE 5 // if ACC > 0, PC := S
-#define OP_JNE 6 // if ACC != 0, PC := S
-#define OP_STP 7 // stop
-#define OP_INVALID -1; // Invalid OP_Code
-
-// Define our registers
-#define REG_PC 0
-#define REG_ACC 1
-#define REG_IR 2
-
-
-// Define how the opcodes look in bit-fields
-typedef struct {
-    uint16_t s : 12;
-    uint16_t opcode : 4;
-} operation_struct;
+#include <opcodes.h>
+#include <structs.h>
+#include <memory.h>
 
 // Our MU0 VM!
 int dispatch(FILE * fp, FILE * hp) {
     int error_code = 0;
-    uint16_t * heap;
-    void * code;
+    heap_t heap;
+    uint16_t * code;
 
-    // Make a heap
-    heap = malloc(sizeof(uint16_t) * 4096);
-    if (heap == NULL) {
-        printf("VM Error: Cannot allocate heap!");
-        fp = NULL;
-        error_code = -1;
+    // Make a heap and code-space if both were passed
+    if (hp) {
+        create_heap(&heap, hp);
+        create_codespace(&code, fp);    
+    } else { //If no heap-file,sssume codefile is also heap
+        create_heap(&heap, fp);
+        code = heap.heap;
     }
 
-    // If we have a heap-file read it in
-    if (hp != NULL) {
-        fread(heap, sizeof(uint16_t), 4096, hp);
-    }
-
-    // Size up our code-space and read in our code
-    if (fp != NULL) {
-        // Get the size of the code-file
-        fseek(fp, 0L, SEEK_END);
-        size_t sz = ftell(fp);
-        fseek(fp, 0L, SEEK_SET);
-
-        // Malloc a code space
-        code = malloc(sizeof(char) * sz);
-        if (code == NULL) {
-            printf("VM Error: Cannot allocate code memory!");
-            fp = NULL;
-            error_code = -3;
-        }
-
-        // Read in our code file
-        if (fread(code, sizeof(char), sz, fp) != sz) return -2;
+    if (!heap.heap) {
+        printf("VM Error: Heap did not allocate!");
+        return -4;
     }
 
     // Lets run code
-    if (fp != NULL) {
+    if (code) {
         // Ok lets setup our initial registers
         uint16_t registers[3] = {0};
 
-        // Include our targeting macro
+        // Include our targeting macro and targets
         #include <target_def.h>
-
-        // Our opcode target table
-        void *op_targets[16] = {
-            &&TARGET_OP_LDA,
-            &&TARGET_OP_STO,
-            &&TARGET_OP_ADD,
-            &&TARGET_OP_SUB,
-            &&TARGET_OP_JMP,
-            &&TARGET_OP_JGE,
-            &&TARGET_OP_JNE,
-            &&TARGET_OP_STP,
-            &&TARGET_OP_INVALID,
-            &&TARGET_OP_INVALID,
-            &&TARGET_OP_INVALID,
-            &&TARGET_OP_INVALID,
-            &&TARGET_OP_INVALID,
-            &&TARGET_OP_INVALID,
-            &&TARGET_OP_INVALID,
-            &&TARGET_OP_INVALID
-        };
-
+        #include <targets.h>
+        
         // Our main VM loop
         while(1) {
             DISPATCH:
             // Fetch the current instruction
-            registers[REG_IR] = ((uint16_t *)code)[registers[REG_PC]];
+            registers[REG_IR] = code[registers[REG_PC]];
             operation_struct* op = (operation_struct *)(&registers[REG_IR]);
 
             // Little inspection
@@ -122,22 +65,26 @@ int dispatch(FILE * fp, FILE * hp) {
             // because of computed-goto awesome
             switch((*op).opcode) {
                 TARGET(OP_LDA) // ACC := mem[S]
+                HEAP_CHECK((*op).s)
                 printf("LDA\n");
-                registers[REG_ACC] = heap[(*op).s];
+                registers[REG_ACC] = heap.heap[(*op).s];
                 goto DISPATCH;
 
                 TARGET(OP_STO) // mem[S] := ACC
-                heap[(*op).s] = registers[REG_ACC];
+                HEAP_CHECK((*op).s)
+                heap.heap[(*op).s] = registers[REG_ACC];
                 printf("STO\n");
                 goto DISPATCH;
 
                 TARGET(OP_ADD) // ACC := ACC + mem[S]
+                HEAP_CHECK((*op).s)
                 printf("ADD\n");
-                registers[REG_ACC] += heap[(*op).s];
+                registers[REG_ACC] += heap.heap[(*op).s];
                 goto DISPATCH;
 
                 TARGET(OP_SUB) // ACC := ACC - mem[S]
-                registers[REG_ACC] -= heap[(*op).s];
+                HEAP_CHECK((*op).s)
+                registers[REG_ACC] -= heap.heap[(*op).s];
                 printf("SUB\n");
                 goto DISPATCH;
 
@@ -167,15 +114,20 @@ int dispatch(FILE * fp, FILE * hp) {
             error_code = -4;
             break;
 
-            TARGET_OP_STP:
+            TARGET_HEAP_BLOWOUT: // Blew out the heap
+            printf("HEAP BLOWOUT\n");
+            error_code = -8;
+            break;
+
+            TARGET_OP_STP: // Normal Stop
             printf("STP\n");
             error_code = 0;
             break;
         }
     }
 
-    if (code != NULL) free(code);
-    if (heap != NULL) free(heap);
+    if (code) free(code);
+    if (heap.heap) free(heap.heap);
 
     return error_code;
 }
@@ -190,16 +142,16 @@ void main(int argc, char * argv[]) {
     
     // Lets open our bytecode file
     FILE * fd = fopen(argv[1], "rb");
-    if (fd == NULL) {
+    if (!fd) {
         printf("Cannot access bytecode file!\n");
         exit(127);
     }
 
-    FILE * hd = NULL;
+    FILE * hd;
     if (argc == 3) {
         // Lets open our heap file
         hd = fopen(argv[2], "rb");
-        if (hd == NULL) {
+        if (!hd) {
             printf("Cannot access heapfile!\n");
             exit(127);
         }
@@ -209,8 +161,8 @@ void main(int argc, char * argv[]) {
     int err_code = dispatch(fd, hd);
 
     // Close our bytecode files
-    if (fd != NULL) fclose(fd);
-    if (hd != NULL) fclose(hd);
+    if (fd) fclose(fd);
+    if (hd) fclose(hd);
 
     // Print an error code if needed
     if (err_code != 0) {
